@@ -28,13 +28,15 @@
   .header-title { font-family:'GothamMedium',Arial,sans-serif; font-size:0.62rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--dim); }
 
   /* NAV */
-  .portal-nav { border-bottom:1px solid var(--border); padding:0 40px; display:flex; }
+  .portal-nav { border-bottom:1px solid var(--border); padding:0; display:flex; align-items:center; }
   .nav-tab { font-family:'GothamMedium',Arial,sans-serif; font-size:0.68rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--dim); padding:16px 24px; cursor:pointer; border-bottom:2px solid transparent; transition:all 0.15s; background:none; border-top:none; border-left:none; border-right:none; -webkit-tap-highlight-color:transparent; }
   .nav-tab:hover { color:var(--white); }
   .nav-tab.active { color:var(--lime); border-bottom-color:var(--lime); }
+  .nav-flag { margin-left:auto; font-family:'GothamMedium',Arial,sans-serif; font-size:0.62rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); background:none; border:1px solid var(--border-strong); border-radius:20px; padding:7px 16px; cursor:pointer; transition:all 0.15s; white-space:nowrap; -webkit-tap-highlight-color:transparent; }
+  .nav-flag:hover { border-color:var(--lime); color:var(--lime); }
 
   /* MAIN */
-  .portal-main { max-width:860px; margin:0 auto; padding:48px 40px 100px; }
+  .portal-main { max-width:none; margin:0; padding:48px 0 100px; }
   .tab-panel { display:none; }
   .tab-panel.active { display:block; }
 
@@ -126,12 +128,46 @@
   <button class="nav-tab active" onclick="showTab('tab-record',this)">Client Record</button>
   <button class="nav-tab" onclick="showTab('tab-resources',this)">Resources</button>
   <button class="nav-tab" onclick="showTab('tab-reference',this)">Quick Reference</button>
+  <button class="nav-flag" onclick="openFlag()">⚑ Raise a hand</button>
 </nav>
 
 <main class="portal-main">
 
   <!-- TAB 1: CLIENT RECORD -->
   <div class="tab-panel active" id="tab-record">
+
+    <!-- RAISE A HAND / FLAG -->
+    <div id="flag-panel" style="display:none; border:1px solid var(--border); border-left:3px solid var(--lime); border-radius:var(--r); padding:24px 28px; margin-bottom:36px; background:var(--surface);">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px;">
+        <div>
+          <div style="font-family:'GothamMedium',Arial,sans-serif; font-size:0.62rem; letter-spacing:0.16em; text-transform:uppercase; color:var(--lime); margin-bottom:6px;">Raise a hand</div>
+          <div style="font-family:'GothamLight',Arial,sans-serif; font-size:0.82rem; color:var(--muted); line-height:1.6; max-width:520px;">Stuck on a client, unsure of a call, or need a second pair of eyes? Send it through and Lana, Nynne and Ben will pick it up in Notion.</div>
+        </div>
+        <button onclick="closeFlag()" style="background:none; border:none; color:var(--dim); font-size:1.3rem; line-height:1; cursor:pointer; padding:0 4px;" aria-label="Close">&times;</button>
+      </div>
+      <div class="form-grid" style="margin-top:20px; margin-bottom:0;">
+        <div class="field-wrap" style="margin-bottom:16px;">
+          <label class="field-label" for="flag-coach">Your name</label>
+          <input class="field-input" id="flag-coach" type="text" placeholder="Coach name" />
+        </div>
+        <div class="field-wrap" style="margin-bottom:16px;">
+          <label class="field-label" for="flag-client">Client <span class="optional">— if it's about someone specific</span></label>
+          <input class="field-input" id="flag-client" type="text" placeholder="Person being coached" />
+        </div>
+      </div>
+      <div class="field-wrap" style="margin-bottom:16px;">
+        <label class="field-label" for="flag-reason">What do you need?</label>
+        <textarea class="field-textarea" id="flag-reason" placeholder="A quick note on what's going on and what would help. The more specific, the faster the team can respond." style="min-height:100px;"></textarea>
+      </div>
+      <button class="submit-btn" id="flag-submit-btn" onclick="submitFlag()" style="padding:16px;">Send to the team &rarr;</button>
+      <div class="submit-confirm" id="flag-confirm">
+        &#10003; Flagged for the team — <strong>Lana, Nynne &amp; Ben</strong> will see this in Notion.
+      </div>
+      <div class="submit-error" id="flag-error">
+        Couldn't send the flag. Please try again, or message the team directly.
+      </div>
+    </div>
+
     <p class="section-eyebrow">Call Notes</p>
     <h1 class="section-title">Client Record</h1>
     <p class="section-body">Complete this after every client call. One record per call — Intake, Post-Session, T2, or T6. Submit and it lands directly in Notion. Takes three minutes.</p>
@@ -164,6 +200,7 @@
         <option value="post">Post-Session — 48–72 hours after</option>
         <option value="t2">Two-Month Check-in — T2</option>
         <option value="t6">Six-Month Review — T6</option>
+        <option value="other">Other — general note</option>
       </select>
     </div>
 
@@ -310,6 +347,15 @@
       </div>
     </div>
 
+    <!-- OTHER -->
+    <div class="call-panel" id="panel-other">
+      <div class="form-divider">General Note</div>
+      <div class="field-wrap">
+        <label class="field-label" for="o-note">Anything worth recording about this client</label>
+        <textarea class="field-textarea" id="o-note" placeholder="A phone call, an email exchange, a heads-up from the sponsor, context worth keeping on the record — anything that doesn't fit one of the scheduled calls." style="min-height:160px;"></textarea>
+      </div>
+    </div>
+
     <!-- SUBMIT -->
     <div id="submit-area" style="display:none; margin-top:8px;">
       <button class="submit-btn" id="submit-btn" onclick="submitRecord()">Submit to Notion →</button>
@@ -428,7 +474,7 @@ const EASE_QUESTIONS = [
 ];
 
 const CALL_TYPE_LABELS = {
-  intake:'Intake', post:'Post-Session', t2:'Two-Month T2', t6:'Six-Month T6'
+  intake:'Intake', post:'Post-Session', t2:'Two-Month T2', t6:'Six-Month T6', other:'Other'
 };
 
 const easeValues = { intake:{}, post:{}, t2:{}, t6:{} };
@@ -447,6 +493,80 @@ function showTab(id, btn) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   btn.classList.add('active');
+}
+
+// ── RAISE A HAND / FLAG ──────────────────────────────────────────────────
+function openFlag() {
+  // Bring the coach to the Client Record tab, where the flag lives
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-record').classList.add('active');
+  const firstTab = document.querySelector('.nav-tab');
+  if (firstTab) firstTab.classList.add('active');
+
+  const panel = document.getElementById('flag-panel');
+  panel.style.display = 'block';
+  document.getElementById('flag-confirm').style.display = 'none';
+  document.getElementById('flag-error').style.display = 'none';
+
+  // Carry the name over if it's already been typed into the record form
+  const mainCoach = document.getElementById('f-coach').value.trim();
+  const flagCoach = document.getElementById('flag-coach');
+  if (mainCoach && !flagCoach.value) flagCoach.value = mainCoach;
+
+  panel.scrollIntoView({ behavior:'smooth', block:'start' });
+  flagCoach.focus();
+}
+
+function closeFlag() {
+  document.getElementById('flag-panel').style.display = 'none';
+}
+
+async function submitFlag() {
+  const coach  = document.getElementById('flag-coach').value.trim();
+  const client = document.getElementById('flag-client').value.trim();
+  const reason = document.getElementById('flag-reason').value.trim();
+
+  if (!coach)  { alert('Please add your name so the team knows who to reach.'); return; }
+  if (!reason) { alert('Add a quick note on what you need.'); return; }
+
+  const btn = document.getElementById('flag-submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  document.getElementById('flag-confirm').style.display = 'none';
+  document.getElementById('flag-error').style.display = 'none';
+
+  const props = {
+    'Client Name': { title: txt(client || ('Needs help — ' + coach)) },
+    'Coach':       { rich_text: txt(coach) },
+    'Call Type':   { select: { name: 'Flag — Needs Help' } },
+    'Coach Notes': { rich_text: txt(reason) },
+    'Date':        { date: { start: new Date().toISOString().split('T')[0] } },
+  };
+
+  const body = { parent: { database_id: NOTION_DB_ID }, properties: props };
+
+  try {
+    const res = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || 'Flag failed');
+    }
+    document.getElementById('flag-confirm').style.display = 'block';
+    document.getElementById('flag-reason').value = '';
+    document.getElementById('flag-confirm').scrollIntoView({ behavior:'smooth' });
+  } catch(e) {
+    console.error(e);
+    document.getElementById('flag-error').style.display = 'block';
+    document.getElementById('flag-error').scrollIntoView({ behavior:'smooth' });
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Send to the team →';
+  }
 }
 
 // ── CALL PANEL ───────────────────────────────────────────────────────────
@@ -534,21 +654,24 @@ async function submitRecord() {
   document.getElementById('submit-confirm').style.display = 'none';
   document.getElementById('submit-error').style.display = 'none';
 
-  const ratings = easeValues[calltype];
-
   const props = {
     'Client Name':  { title: txt(client) },
     'Organisation': { rich_text: txt(org) },
     'Coach':        { rich_text: txt(coach) },
     'Call Type':    { select: { name: CALL_TYPE_LABELS[calltype] } },
-    'Q1 Say something difficult':            { number: num(ratings[0]) },
-    'Q2 Stay in uncomfortable conversation': { number: num(ratings[1]) },
-    'Q3 Let someone else lead':              { number: num(ratings[2]) },
-    'Q4 Decide without sign-off':            { number: num(ratings[3]) },
-    'Q5 Give honest feedback':               { number: num(ratings[4]) },
   };
 
   if (date) props['Date'] = { date: { start: date } };
+
+  // Ease ratings apply to the four structured calls — not to a general 'Other' note
+  if (calltype !== 'other') {
+    const ratings = easeValues[calltype] || {};
+    props['Q1 Say something difficult']            = { number: num(ratings[0]) };
+    props['Q2 Stay in uncomfortable conversation'] = { number: num(ratings[1]) };
+    props['Q3 Let someone else lead']              = { number: num(ratings[2]) };
+    props['Q4 Decide without sign-off']            = { number: num(ratings[3]) };
+    props['Q5 Give honest feedback']               = { number: num(ratings[4]) };
+  }
 
   if (calltype === 'intake') {
     props['Pattern']        = { rich_text: txt(document.getElementById('i-pattern').value) };
@@ -575,6 +698,8 @@ async function submitRecord() {
     props["What Didn't Change"] = { rich_text: txt(document.getElementById('t6-remaining').value) };
     props['Coach Notes']        = { rich_text: txt(document.getElementById('t6-notes').value) };
     if (selectedPermission) props['Case Study Permission'] = { select: { name: selectedPermission } };
+  } else if (calltype === 'other') {
+    props['Coach Notes'] = { rich_text: txt(document.getElementById('o-note').value) };
   }
 
   const body = {
