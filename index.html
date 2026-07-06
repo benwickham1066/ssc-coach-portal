@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSC — Coach Portal</title>
+<style>
+  @font-face { font-family:'DrukTextBold'; src:url('https://static1.squarespace.com/static/67c07a91ad784447cbc65db9/t/6a1009cd7aaf840ccfa17f85/1779435981098/Druk-Bold-Web.woff2') format('woff2'); font-weight:700; font-style:normal; font-display:swap; }
+  @font-face { font-family:'GothamLight'; src:url('https://static1.squarespace.com/static/67c07a91ad784447cbc65db9/t/6830c26fc80e440c041d2ef5/1748025967908/Gotham-Light.otf') format('opentype'); font-weight:300; font-style:normal; font-display:swap; }
+  @font-face { font-family:'GothamBook'; src:url('https://static1.squarespace.com/static/67c07a91ad784447cbc65db9/t/67c16f32ccecbb575ae82d2f/1740730162912/GothamBook.ttf') format('truetype'); font-weight:400; font-style:normal; font-display:swap; }
+  @font-face { font-family:'GothamMedium'; src:url('https://static1.squarespace.com/static/67c07a91ad784447cbc65db9/t/67c97a2fa70c204473c1f0c9/1741278511802/GothamMedium.ttf') format('truetype'); font-weight:600; font-style:normal; font-display:swap; }
+
+  *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+  :root {
+    --lime:#DCFF4F; --white:#f7f7f7; --muted:#bbbbbb; --dim:#888888;
+    --surface:rgba(255,255,255,0.06); --surface2:rgba(255,255,255,0.10);
+    --border:rgba(255,255,255,0.12); --border-strong:rgba(255,255,255,0.22);
+    --black:#1a1a1a; --r:6px;
+  }
+  html,body { background:transparent; min-height:100vh; }
+  body { color:var(--white); font-family:'GothamBook',Arial,sans-serif; font-size:0.95rem; line-height:1.6; }
+
+  /* HEADER */
+  .portal-header { border-bottom:1px solid var(--border); padding:0 40px; display:flex; align-items:center; justify-content:space-between; height:64px; position:sticky; top:0; background:transparent; z-index:100; }
+  .header-left { display:flex; align-items:center; gap:16px; }
+  .header-logo { font-family:'DrukTextBold',Arial,sans-serif; font-size:1.1rem; letter-spacing:0.18em; color:var(--lime); text-transform:uppercase; }
+  .header-divider { width:1px; height:16px; background:var(--border-strong); }
+  .header-title { font-family:'GothamMedium',Arial,sans-serif; font-size:0.62rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--dim); }
+
+  /* NAV */
+  .portal-nav { border-bottom:1px solid var(--border); padding:0 40px; display:flex; }
+  .nav-tab { font-family:'GothamMedium',Arial,sans-serif; font-size:0.68rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--dim); padding:16px 24px; cursor:pointer; border-bottom:2px solid transparent; transition:all 0.15s; background:none; border-top:none; border-left:none; border-right:none; -webkit-tap-highlight-color:transparent; }
+  .nav-tab:hover { color:var(--white); }
+  .nav-tab.active { color:var(--lime); border-bottom-color:var(--lime); }
+
+  /* MAIN */
+  .portal-main { max-width:860px; margin:0 auto; padding:48px 40px 100px; }
+  .tab-panel { display:none; }
+  .tab-panel.active { display:block; }
+
+  /* TYPOGRAPHY */
+  .section-eyebrow { font-family:'GothamMedium',Arial,sans-serif; font-size:0.62rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--lime); margin-bottom:12px; }
+  .section-title { font-family:'DrukTextBold',Arial,sans-serif; font-size:clamp(1.8rem,4vw,2.8rem); text-transform:uppercase; letter-spacing:0.03em; color:var(--white); line-height:1; margin-bottom:12px; }
+  .section-body { font-family:'GothamLight',Arial,sans-serif; font-size:0.9rem; color:var(--muted); line-height:1.7; max-width:580px; margin-bottom:40px; }
+  .form-divider { font-family:'GothamMedium',Arial,sans-serif; font-size:0.6rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--dim); padding-bottom:12px; border-bottom:1px solid var(--border); margin:32px 0 24px; }
+
+  /* FORM */
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+  .field-wrap { margin-bottom:20px; }
+  .field-label { font-family:'GothamMedium',Arial,sans-serif; font-size:0.62rem; letter-spacing:0.16em; text-transform:uppercase; color:var(--muted); display:block; margin-bottom:8px; }
+  .field-label .optional { font-family:'GothamLight',Arial,sans-serif; letter-spacing:0; text-transform:none; font-size:0.68rem; color:var(--dim); }
+  .field-input,.field-select,.field-textarea { width:100%; background:var(--surface); border:1px solid var(--border-strong); color:var(--white); font-family:'GothamBook',Arial,sans-serif; font-size:0.95rem; padding:13px 14px; outline:none; border-radius:var(--r); transition:border-color 0.15s; -webkit-appearance:none; }
+  .field-input:focus,.field-select:focus,.field-textarea:focus { border-color:var(--lime); }
+  .field-input::placeholder,.field-textarea::placeholder { color:rgba(187,187,187,0.3); }
+  .field-select option { background:#222; color:var(--white); }
+  .field-textarea { resize:vertical; min-height:100px; line-height:1.65; }
+
+  /* RATINGS */
+  .ratings-block { border:1px solid var(--border); border-left:3px solid var(--lime); border-radius:var(--r); padding:24px 28px; margin-bottom:24px; }
+  .ratings-title { font-family:'GothamMedium',Arial,sans-serif; font-size:0.62rem; letter-spacing:0.16em; text-transform:uppercase; color:var(--lime); margin-bottom:6px; }
+  .ratings-sub { font-family:'GothamLight',Arial,sans-serif; font-size:0.78rem; color:var(--dim); margin-bottom:24px; line-height:1.5; }
+  .rating-row { display:flex; align-items:center; gap:16px; padding:12px 0; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+  .rating-row:last-child { border-bottom:none; }
+  .rating-q { flex:1; min-width:180px; font-family:'GothamBook',Arial,sans-serif; font-size:0.85rem; color:var(--white); line-height:1.45; }
+  .rating-scale { display:flex; gap:4px; flex-shrink:0; }
+  .rating-btn { width:32px; height:32px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font-family:'GothamMedium',Arial,sans-serif; font-size:0.72rem; cursor:pointer; border-radius:4px; transition:all 0.1s; -webkit-tap-highlight-color:transparent; }
+  .rating-btn:hover { border-color:var(--lime); color:var(--lime); }
+  .rating-btn.selected { background:var(--lime); border-color:var(--lime); color:var(--black); }
+  .rating-labels { display:flex; justify-content:space-between; font-family:'GothamMedium',Arial,sans-serif; font-size:0.55rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--dim); margin-top:6px; }
+
+  /* CALL PANELS */
+  .call-panel { display:none; }
+  .call-panel.active { display:block; }
+
+  /* PERMISSION */
+  .permission-options { display:flex; gap:8px; flex-wrap:wrap; margin-top:4px; }
+  .perm-btn { background:var(--surface); border:1px solid var(--border-strong); color:var(--muted); font-family:'GothamMedium',Arial,sans-serif; font-size:0.72rem; letter-spacing:0.06em; text-transform:uppercase; padding:10px 18px; cursor:pointer; border-radius:var(--r); transition:all 0.15s; -webkit-tap-highlight-color:transparent; }
+  .perm-btn:hover { border-color:var(--lime); color:var(--white); }
+  .perm-btn.selected { background:var(--lime); border-color:var(--lime); color:var(--black); }
+
+  /* SUBMIT */
+  .submit-btn { width:100%; background:var(--lime); color:var(--black); border:none; padding:20px; font-family:'DrukTextBold',Arial,sans-serif; font-size:1.1rem; letter-spacing:0.14em; text-transform:uppercase; cursor:pointer; border-radius:var(--r); transition:opacity 0.15s; margin-top:8px; }
+  .submit-btn:hover { opacity:0.88; }
+  .submit-btn:disabled { opacity:0.5; cursor:not-allowed; }
+  .submit-confirm { display:none; background:rgba(220,255,79,0.08); border:1px solid var(--lime); border-radius:var(--r); padding:20px 24px; margin-top:16px; font-family:'GothamBook',Arial,sans-serif; font-size:0.9rem; color:var(--lime); line-height:1.6; }
+  .submit-error { display:none; background:rgba(255,80,80,0.08); border:1px solid rgba(255,80,80,0.4); border-radius:var(--r); padding:20px 24px; margin-top:16px; font-family:'GothamBook',Arial,sans-serif; font-size:0.88rem; color:#ff8080; line-height:1.6; }
+
+  /* RESOURCES */
+  .resource-section { margin-bottom:40px; }
+  .resource-section-label { font-family:'GothamMedium',Arial,sans-serif; font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--dim); padding-bottom:12px; border-bottom:1px solid var(--border); margin-bottom:0; }
+  .resource-item { display:flex; align-items:center; justify-content:space-between; gap:24px; padding:18px 0; border-bottom:1px solid var(--border); text-decoration:none; }
+  .resource-item:hover .resource-name { color:var(--lime); }
+  .resource-left { flex:1; }
+  .resource-name { font-family:'GothamMedium',Arial,sans-serif; font-size:0.92rem; color:var(--white); margin-bottom:3px; transition:color 0.15s; }
+  .resource-desc { font-family:'GothamLight',Arial,sans-serif; font-size:0.78rem; color:var(--dim); line-height:1.5; }
+  .resource-tag { font-family:'GothamMedium',Arial,sans-serif; font-size:0.58rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--dim); background:var(--surface); border:1px solid var(--border); padding:5px 10px; border-radius:3px; white-space:nowrap; flex-shrink:0; }
+  .resource-item:hover .resource-tag { border-color:var(--lime); color:var(--lime); }
+
+  /* QUICK REF */
+  .ref-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:32px; }
+  .ref-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:20px 22px; }
+  .ref-card-title { font-family:'DrukTextBold',Arial,sans-serif; font-size:0.95rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--lime); margin-bottom:8px; }
+  .ref-card-body { font-family:'GothamLight',Arial,sans-serif; font-size:0.8rem; color:var(--muted); line-height:1.65; }
+  .ref-table { width:100%; border-collapse:collapse; margin-bottom:32px; font-size:0.82rem; }
+  .ref-table thead tr { background:rgba(220,255,79,0.08); border-bottom:1px solid var(--lime); }
+  .ref-table th { font-family:'GothamMedium',Arial,sans-serif; font-size:0.6rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--lime); padding:10px 14px; text-align:left; }
+  .ref-table td { font-family:'GothamBook',Arial,sans-serif; color:var(--white); padding:12px 14px; border-bottom:1px solid var(--border); vertical-align:top; line-height:1.5; }
+  .ref-table td:first-child { font-family:'GothamMedium',Arial,sans-serif; color:var(--lime); white-space:nowrap; width:120px; }
+
+  @media(max-width:640px){
+    .portal-header { padding:0 20px; }
+    .portal-nav { padding:0 20px; overflow-x:auto; }
+    .nav-tab { padding:14px 16px; white-space:nowrap; }
+    .portal-main { padding:32px 20px 80px; }
+    .form-grid { grid-template-columns:1fr; }
+    .ref-grid { grid-template-columns:1fr; }
+    .rating-scale { gap:3px; }
+    .rating-btn { width:26px; height:26px; font-size:0.65rem; }
+    .resource-tag { display:none; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="portal-nav">
+  <button class="nav-tab active" onclick="showTab('tab-record',this)">Client Record</button>
+  <button class="nav-tab" onclick="showTab('tab-resources',this)">Resources</button>
+  <button class="nav-tab" onclick="showTab('tab-reference',this)">Quick Reference</button>
+</nav>
+
+<main class="portal-main">
+
+  <!-- TAB 1: CLIENT RECORD -->
+  <div class="tab-panel active" id="tab-record">
+    <p class="section-eyebrow">Call Notes</p>
+    <h1 class="section-title">Client Record</h1>
+    <p class="section-body">Complete this after every client call. One record per call — Intake, Post-Session, T2, or T6. Submit and it lands directly in Notion. Takes three minutes.</p>
+
+    <div class="form-grid">
+      <div class="field-wrap">
+        <label class="field-label" for="f-coach">Your name</label>
+        <input class="field-input" id="f-coach" type="text" placeholder="Coach name" />
+      </div>
+      <div class="field-wrap">
+        <label class="field-label" for="f-date">Date of call</label>
+        <input class="field-input" id="f-date" type="date" />
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="field-wrap">
+        <label class="field-label" for="f-client">Client name</label>
+        <input class="field-input" id="f-client" type="text" placeholder="Person being coached" />
+      </div>
+      <div class="field-wrap">
+        <label class="field-label" for="f-org">Organisation</label>
+        <input class="field-input" id="f-org" type="text" placeholder="Client's company" />
+      </div>
+    </div>
+    <div class="field-wrap">
+      <label class="field-label" for="f-calltype">Call type</label>
+      <select class="field-select" id="f-calltype" onchange="showCallPanel()">
+        <option value="">— Select call type —</option>
+        <option value="intake">Intake — before the session</option>
+        <option value="post">Post-Session — 48–72 hours after</option>
+        <option value="t2">Two-Month Check-in — T2</option>
+        <option value="t6">Six-Month Review — T6</option>
+      </select>
+    </div>
+
+    <!-- INTAKE -->
+    <div class="call-panel" id="panel-intake">
+      <div class="form-divider">The Pattern</div>
+      <div class="field-wrap">
+        <label class="field-label" for="i-pattern">What pattern emerged?</label>
+        <textarea class="field-textarea" id="i-pattern" placeholder="Describe the repeating situation, the client's default response, and how long it's been running." style="min-height:120px;"></textarea>
+      </div>
+      <div class="form-grid">
+        <div class="field-wrap">
+          <label class="field-label" for="i-cost">What is it costing them?</label>
+          <textarea class="field-textarea" id="i-cost" placeholder="In their words if possible." style="min-height:80px;"></textarea>
+        </div>
+        <div class="field-wrap">
+          <label class="field-label" for="i-aspiration">What does change look like?</label>
+          <textarea class="field-textarea" id="i-aspiration" placeholder="What would the team notice first?" style="min-height:80px;"></textarea>
+        </div>
+      </div>
+      <div class="form-divider">Ease Ratings — Baseline</div>
+      <div class="ratings-block">
+        <div class="ratings-title">How easy is it right now to…</div>
+        <div class="ratings-sub">1 = almost impossible · 10 = completely natural. Record what they say.</div>
+        <div id="ratings-intake"></div>
+      </div>
+      <div class="field-wrap">
+        <label class="field-label" for="i-notes">Coach notes <span class="optional">— anything else worth recording</span></label>
+        <textarea class="field-textarea" id="i-notes" placeholder="Working hypothesis, what to watch for in the session, anything that struck you."></textarea>
+      </div>
+    </div>
+
+    <!-- POST SESSION -->
+    <div class="call-panel" id="panel-post">
+      <div class="form-divider">What Shifted</div>
+      <div class="field-wrap">
+        <label class="field-label" for="p-shift">What shifted in the session?</label>
+        <textarea class="field-textarea" id="p-shift" placeholder="In their words. What landed, what changed, what they now understand differently." style="min-height:120px;"></textarea>
+      </div>
+      <div class="field-wrap">
+        <label class="field-label" for="p-48hrs">First 48 hours — what happened?</label>
+        <textarea class="field-textarea" id="p-48hrs" placeholder="Any conversations they handled differently. Moments where they caught the pattern running." style="min-height:100px;"></textarea>
+      </div>
+      <div class="form-divider">Ease Ratings — T0</div>
+      <div class="ratings-block">
+        <div class="ratings-title">How easy is it right now to…</div>
+        <div class="ratings-sub">Same five questions as intake. The delta is the data.</div>
+        <div id="ratings-post"></div>
+      </div>
+      <div class="field-wrap">
+        <label class="field-label" for="p-watching">What are they watching for?</label>
+        <textarea class="field-textarea" id="p-watching" placeholder="What have they committed to noticing over the next two months?" style="min-height:80px;"></textarea>
+      </div>
+      <div class="field-wrap">
+        <label class="field-label" for="p-notes">Coach notes</label>
+        <textarea class="field-textarea" id="p-notes" placeholder="Your read on where the work landed. Any concerns. Anything to follow up."></textarea>
+      </div>
+    </div>
+
+    <!-- T2 -->
+    <div class="call-panel" id="panel-t2">
+      <div class="form-divider">What's Changed</div>
+      <div class="form-grid">
+        <div class="field-wrap">
+          <label class="field-label" for="t2-different">What feels different?</label>
+          <textarea class="field-textarea" id="t2-different" placeholder="How they're leading differently. Conversations handled differently."></textarea>
+        </div>
+        <div class="field-wrap">
+          <label class="field-label" for="t2-same">What's still the same?</label>
+          <textarea class="field-textarea" id="t2-same" placeholder="Where the pattern is still running. What hasn't shifted yet."></textarea>
+        </div>
+      </div>
+      <div class="field-wrap">
+        <label class="field-label" for="t2-team">How is the team responding?</label>
+        <textarea class="field-textarea" id="t2-team" placeholder="Changes upstream and downstream. What others are noticing." style="min-height:80px;"></textarea>
+      </div>
+      <div class="form-divider">The Anecdote</div>
+      <div class="field-wrap">
+        <label class="field-label" for="t2-anecdote">One specific example — a moment that was genuinely different</label>
+        <textarea class="field-textarea" id="t2-anecdote" placeholder="What happened, who was involved, what they did differently, what the outcome was. Potential case study material — get the specifics." style="min-height:120px;"></textarea>
+      </div>
+      <div class="form-divider">Ease Ratings — T2</div>
+      <div class="ratings-block">
+        <div class="ratings-title">How easy is it right now to…</div>
+        <div class="ratings-sub">Same five questions. Note the movement from T0.</div>
+        <div id="ratings-t2"></div>
+      </div>
+      <div class="field-wrap">
+        <label class="field-label" for="t2-notes">Coach notes</label>
+        <textarea class="field-textarea" id="t2-notes" placeholder="Your overall read. Is the work holding? What to watch for at T6."></textarea>
+      </div>
+    </div>
+
+    <!-- T6 -->
+    <div class="call-panel" id="panel-t6">
+      <div class="form-divider">Results</div>
+      <div class="field-wrap">
+        <label class="field-label" for="t6-cando">What can they do now that they couldn't do before?</label>
+        <textarea class="field-textarea" id="t6-cando" placeholder="Specific capabilities. Conversations they're having. Decisions they're making." style="min-height:100px;"></textarea>
+      </div>
+      <div class="form-grid">
+        <div class="field-wrap">
+          <label class="field-label" for="t6-downstream">What's changed downstream?</label>
+          <textarea class="field-textarea" id="t6-downstream" placeholder="Team response. How direct reports describe them now."></textarea>
+        </div>
+        <div class="field-wrap">
+          <label class="field-label" for="t6-upstream">What's changed upstream?</label>
+          <textarea class="field-textarea" id="t6-upstream" placeholder="Manager, board, peers. Opportunities or roles that have opened."></textarea>
+        </div>
+      </div>
+      <div class="field-wrap">
+        <label class="field-label" for="t6-value">Estimated value to the organisation <span class="optional">— their words, not precise</span></label>
+        <input class="field-input" id="t6-value" type="text" placeholder="e.g. 'Probably saved us a restructure'" />
+      </div>
+      <div class="field-wrap">
+        <label class="field-label" for="t6-headline">The headline — in one sentence, what changed?</label>
+        <input class="field-input" id="t6-headline" type="text" placeholder="Their words. This becomes the case study opening line." />
+      </div>
+      <div class="form-divider">What Didn't Change</div>
+      <div class="field-wrap">
+        <label class="field-label" for="t6-remaining">What's still hard? What didn't shift?</label>
+        <textarea class="field-textarea" id="t6-remaining" placeholder="Honest account. Remaining patterns. Any contexts where the old behaviour still runs."></textarea>
+      </div>
+      <div class="form-divider">Ease Ratings — T6</div>
+      <div class="ratings-block">
+        <div class="ratings-title">How easy is it right now to…</div>
+        <div class="ratings-sub">Same five questions. This is the six-month delta — the core evidence.</div>
+        <div id="ratings-t6"></div>
+      </div>
+      <div class="form-divider">Case Study Permission</div>
+      <div class="field-wrap">
+        <label class="field-label">Is the client willing to be referenced?</label>
+        <div class="permission-options">
+          <button class="perm-btn" onclick="selectPerm(this,'Named')">Named — full attribution</button>
+          <button class="perm-btn" onclick="selectPerm(this,'Anonymous')">Anonymous — role and sector only</button>
+          <button class="perm-btn" onclick="selectPerm(this,'Willing to speak')">Willing to speak to prospects</button>
+          <button class="perm-btn" onclick="selectPerm(this,'Not yet')">Not at this stage</button>
+        </div>
+        <input type="hidden" id="f-permission" value="" />
+      </div>
+      <div class="field-wrap">
+        <label class="field-label" for="t6-notes">Coach notes</label>
+        <textarea class="field-textarea" id="t6-notes" placeholder="Your overall read. What this case study shows. Anything for Nynne or Lana to follow up with the sponsor."></textarea>
+      </div>
+    </div>
+
+    <!-- SUBMIT -->
+    <div id="submit-area" style="display:none; margin-top:8px;">
+      <button class="submit-btn" id="submit-btn" onclick="submitRecord()">Submit to Notion →</button>
+      <div class="submit-confirm" id="submit-confirm">
+        ✓ Filed in Notion — <strong id="confirm-client"></strong> · <strong id="confirm-calltype"></strong>.<br>
+        <span style="font-family:'GothamLight',Arial,sans-serif;font-size:0.82rem;color:var(--muted);">Open SSC Client Records in Notion to see it now.</span>
+      </div>
+      <div class="submit-error" id="submit-error">
+        Something went wrong. Please try again or email the notes to hello@singlesession.online.
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: RESOURCES -->
+  <div class="tab-panel" id="tab-resources">
+    <p class="section-eyebrow">Coach Library</p>
+    <h1 class="section-title">Resources</h1>
+    <p class="section-body">Everything you need, in one place. Click to open. All documents are live — if something's been updated, this link reflects it.</p>
+
+    <div class="resource-section">
+      <div class="resource-section-label">Session Preparation</div>
+      <a class="resource-item" href="https://www.notion.so/34ddd54acad58113b809dfc6181f19dd" target="_blank">
+        <div class="resource-left"><div class="resource-name">SSC Coach Onboarding Guide</div><div class="resource-desc">The full methodology, session arc, and how to use Surface / Decode / Resolve in practice.</div></div>
+        <span class="resource-tag">↗ Notion</span>
+      </a>
+      <a class="resource-item" href="https://www.notion.so/359dd54acad58002a65de393bc3c6b82" target="_blank">
+        <div class="resource-left"><div class="resource-name">Coaching Onboarding Guide</div><div class="resource-desc">Structured questions for the pre-session call. What to listen for. How to build the working hypothesis.</div></div>
+        <span class="resource-tag">↗ Notion</span>
+      </a>
+      <a class="resource-item" href="https://www.notion.so/37fdd54acad5817c8560eb3c05a4839b" target="_blank">
+        <div class="resource-left"><div class="resource-name">SSC Measurement Protocol — The Proof Engine</div><div class="resource-desc">All four calls. Every question. The ease rating reference card. The case study conversation guide.</div></div>
+        <span class="resource-tag">↗ Notion</span>
+      </a>
+    </div>
+
+    <div class="resource-section">
+      <div class="resource-section-label">Evidence & Research</div>
+      <a class="resource-item" href="https://singlesession.online/calculator" target="_blank">
+        <div class="resource-left"><div class="resource-name">Behaviour Cost Calculator</div><div class="resource-desc">The live calculator. Share with sponsors and L&D buyers to open the commercial conversation.</div></div>
+        <span class="resource-tag">↗ singlesession.online</span>
+      </a>
+      <a class="resource-item" href="https://benwickham1066.github.io/sscpulse/" target="_blank">
+        <div class="resource-left"><div class="resource-name">SSC Pulse — Client Self-Tracker</div><div class="resource-desc">Send this to clients after the session. They complete it at T0, T2, T6, T12. Their journey, their data.</div></div>
+        <span class="resource-tag">↗ GitHub</span>
+      </a>
+    </div>
+
+    <div class="resource-section">
+      <div class="resource-section-label">Client Records</div>
+      <a class="resource-item" href="https://www.notion.so/bfd331f1c0ad425cbbfc741fe8494339" target="_blank">
+        <div class="resource-left"><div class="resource-name">SSC Client Records Database</div><div class="resource-desc">Every call record filed from this portal. Searchable by client, coach, call type, and date.</div></div>
+        <span class="resource-tag">↗ Notion</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- TAB 3: QUICK REFERENCE -->
+  <div class="tab-panel" id="tab-reference">
+    <p class="section-eyebrow">In-Call Reference</p>
+    <h1 class="section-title">Quick Reference</h1>
+    <p class="section-body">Keep this open during calls. The methodology, the patterns, the ease questions — everything you need without hunting for it.</p>
+
+    <div class="form-divider" style="margin-top:0;">The Methodology Arc</div>
+    <div class="ref-grid" style="margin-bottom:32px;">
+      <div class="ref-card"><div class="ref-card-title">Surface</div><div class="ref-card-body">Make the pattern visible. Not as a diagnosis — as a recognition. The client needs to see it themselves, in their own words, before anything else can happen.</div></div>
+      <div class="ref-card"><div class="ref-card-title">Decode</div><div class="ref-card-body">Understand what the pattern was protecting. It made sense once — in a context that no longer exists. The work is to find that original logic and honour it.</div></div>
+      <div class="ref-card" style="grid-column:1/-1;"><div class="ref-card-title">Resolve</div><div class="ref-card-body">Give the client a genuine choice. Not willpower — mechanism. The pattern becomes optional. They can run it consciously or not at all. That's the shift.</div></div>
+    </div>
+
+    <div class="form-divider">The Seven Defensive Patterns</div>
+    <table class="ref-table">
+      <thead><tr><th>Pattern</th><th>What it looks like</th><th>What it stops</th></tr></thead>
+      <tbody>
+        <tr><td>Smoothing</td><td>Agrees, softens, says yes when they mean no. Keeps the peace at the cost of honesty.</td><td>The honest disagreement that would have changed the outcome.</td></tr>
+        <tr><td>Deferring Up</td><td>Refers decisions upward that they could and should make themselves.</td><td>Speed, ownership, and the trust of the people they lead.</td></tr>
+        <tr><td>Going Quiet</td><td>Sees the problem, says nothing. Withdraws when their voice is most needed.</td><td>The early warning. By the time it surfaces, the cost has multiplied.</td></tr>
+        <tr><td>Shutting It Down</td><td>Closes conversations before the real issue is resolved.</td><td>The new idea. People stop bringing things because speaking up carries a cost.</td></tr>
+        <tr><td>Defending</td><td>Protects their position before the other person has finished talking.</td><td>Feedback reaching them. Blind spots widen. The team stops trying.</td></tr>
+        <tr><td>Taking Over</td><td>Steps in and solves what belongs to someone else.</td><td>The team's ownership and growth. Capacity concentrates at the top.</td></tr>
+        <tr><td>Firefighting</td><td>Lives in urgency. Always reacting, rarely leading.</td><td>The strategic conversation. The team runs in permanent crisis mode.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="form-divider">Ease Rating Questions — All Four Calls</div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--lime);border-radius:var(--r);padding:24px 28px;margin-bottom:32px;">
+      <div style="font-family:'GothamMedium',Arial,sans-serif;font-size:0.62rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--lime);margin-bottom:16px;">Ask these at every call. Record 1–10. The movement is the evidence.</div>
+      <div id="ref-ease-list"></div>
+      <div style="font-family:'GothamLight',Arial,sans-serif;font-size:0.72rem;color:var(--dim);margin-top:14px;">1 = almost impossible &nbsp;·&nbsp; 10 = completely natural</div>
+    </div>
+
+    <div class="form-divider">Call Structure at a Glance</div>
+    <table class="ref-table">
+      <thead><tr><th>Call</th><th>When</th><th>Duration</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>Intake</td><td>Before session</td><td>45 min</td><td>Establish baseline. Build the working hypothesis. Capture ease ratings.</td></tr>
+        <tr><td>Post-Session</td><td>48–72 hrs after</td><td>20–30 min</td><td>Capture what shifted while it's live. T0 ease ratings. Commitment for T2.</td></tr>
+        <tr><td>T2 Check-in</td><td>2 months out</td><td>20–30 min</td><td>Early signal. What's changed, what hasn't. The first anecdote.</td></tr>
+        <tr><td>T6 Review</td><td>6 months out</td><td>45 min</td><td>Case study conversation. Full results. Permission. Headline quote.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</main>
+
+<script>
+// ── CONFIG — no credentials here, token lives in Cloudflare ──────────────
+const WORKER_URL   = 'https://ssc-notion-proxy.ben-fba.workers.dev';
+const NOTION_DB_ID = 'bfd331f1c0ad425cbbfc741fe8494339';
+
+const EASE_QUESTIONS = [
+  'Say something difficult to someone more senior',
+  'Stay in a conversation that\'s becoming uncomfortable',
+  'Let someone else lead without stepping in',
+  'Make a decision without needing sign-off',
+  'Give honest feedback to someone in your team'
+];
+
+const CALL_TYPE_LABELS = {
+  intake:'Intake', post:'Post-Session', t2:'Two-Month T2', t6:'Six-Month T6'
+};
+
+const easeValues = { intake:{}, post:{}, t2:{}, t6:{} };
+let selectedPermission = '';
+
+// ── INIT ─────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  buildRatings();
+  buildRefEaseList();
+  document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+});
+
+// ── TABS ─────────────────────────────────────────────────────────────────
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── CALL PANEL ───────────────────────────────────────────────────────────
+function showCallPanel() {
+  const val = document.getElementById('f-calltype').value;
+  document.querySelectorAll('.call-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('submit-area').style.display = 'none';
+  document.getElementById('submit-confirm').style.display = 'none';
+  document.getElementById('submit-error').style.display = 'none';
+  if (val) {
+    document.getElementById('panel-' + val).classList.add('active');
+    document.getElementById('submit-area').style.display = 'block';
+  }
+}
+
+// ── RATINGS ──────────────────────────────────────────────────────────────
+function buildRatings() {
+  ['intake','post','t2','t6'].forEach(type => {
+    const el = document.getElementById('ratings-' + type);
+    if (!el) return;
+    el.innerHTML = EASE_QUESTIONS.map((q, i) => {
+      const btns = Array.from({length:10}, (_,v) =>
+        `<button class="rating-btn" id="rb-${type}-${i}-${v+1}" onclick="selectRating('${type}',${i},${v+1})">${v+1}</button>`
+      ).join('');
+      return `<div class="rating-row">
+        <div class="rating-q">${q}</div>
+        <div>
+          <div class="rating-scale">${btns}</div>
+          <div class="rating-labels"><span>Almost impossible</span><span>Completely natural</span></div>
+        </div>
+      </div>`;
+    }).join('');
+  });
+}
+
+function selectRating(type, qIdx, val) {
+  easeValues[type][qIdx] = val;
+  for (let v = 1; v <= 10; v++) {
+    const btn = document.getElementById(`rb-${type}-${qIdx}-${v}`);
+    if (btn) btn.classList.toggle('selected', v === val);
+  }
+}
+
+function buildRefEaseList() {
+  const el = document.getElementById('ref-ease-list');
+  if (!el) return;
+  el.innerHTML = EASE_QUESTIONS.map((q,i) =>
+    `<div style="display:flex;gap:16px;padding:12px 0;border-bottom:1px solid var(--border);align-items:flex-start;">
+      <span style="font-family:'DrukTextBold',Arial,sans-serif;font-size:1rem;color:var(--lime);min-width:24px;">0${i+1}</span>
+      <span style="font-family:'GothamBook',Arial,sans-serif;font-size:0.88rem;color:var(--white);line-height:1.5;">How easy is it right now to <strong>${q}?</strong></span>
+    </div>`
+  ).join('');
+}
+
+// ── PERMISSION ───────────────────────────────────────────────────────────
+function selectPerm(btn, val) {
+  document.querySelectorAll('.perm-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedPermission = val;
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────
+function txt(str) {
+  return [{ type:'text', text:{ content: String(str || '').slice(0,2000) } }];
+}
+function num(val) {
+  return (val !== undefined && val !== '') ? Number(val) : null;
+}
+
+// ── SUBMIT ───────────────────────────────────────────────────────────────
+async function submitRecord() {
+  const coach    = document.getElementById('f-coach').value.trim();
+  const client   = document.getElementById('f-client').value.trim();
+  const org      = document.getElementById('f-org').value.trim();
+  const calltype = document.getElementById('f-calltype').value;
+  const date     = document.getElementById('f-date').value;
+
+  if (!coach)    { alert('Please enter your name.'); return; }
+  if (!client)   { alert('Please enter the client\'s name.'); return; }
+  if (!calltype) { alert('Please select a call type.'); return; }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Filing in Notion…';
+  document.getElementById('submit-confirm').style.display = 'none';
+  document.getElementById('submit-error').style.display = 'none';
+
+  const ratings = easeValues[calltype];
+
+  const props = {
+    'Client Name':  { title: txt(client) },
+    'Organisation': { rich_text: txt(org) },
+    'Coach':        { rich_text: txt(coach) },
+    'Call Type':    { select: { name: CALL_TYPE_LABELS[calltype] } },
+    'Q1 Say something difficult':            { number: num(ratings[0]) },
+    'Q2 Stay in uncomfortable conversation': { number: num(ratings[1]) },
+    'Q3 Let someone else lead':              { number: num(ratings[2]) },
+    'Q4 Decide without sign-off':            { number: num(ratings[3]) },
+    'Q5 Give honest feedback':               { number: num(ratings[4]) },
+  };
+
+  if (date) props['Date'] = { date: { start: date } };
+
+  if (calltype === 'intake') {
+    props['Pattern']        = { rich_text: txt(document.getElementById('i-pattern').value) };
+    props['Cost to client'] = { rich_text: txt(document.getElementById('i-cost').value) };
+    props['Aspiration']     = { rich_text: txt(document.getElementById('i-aspiration').value) };
+    props['Coach Notes']    = { rich_text: txt(document.getElementById('i-notes').value) };
+  } else if (calltype === 'post') {
+    props['What Shifted']   = { rich_text: txt(document.getElementById('p-shift').value) };
+    props['First 48 Hours'] = { rich_text: txt(document.getElementById('p-48hrs').value) };
+    props['Watching For']   = { rich_text: txt(document.getElementById('p-watching').value) };
+    props['Coach Notes']    = { rich_text: txt(document.getElementById('p-notes').value) };
+  } else if (calltype === 't2') {
+    props["What's Different"] = { rich_text: txt(document.getElementById('t2-different').value) };
+    props["What's Same"]      = { rich_text: txt(document.getElementById('t2-same').value) };
+    props['Team Response']    = { rich_text: txt(document.getElementById('t2-team').value) };
+    props['Anecdote']         = { rich_text: txt(document.getElementById('t2-anecdote').value) };
+    props['Coach Notes']      = { rich_text: txt(document.getElementById('t2-notes').value) };
+  } else if (calltype === 't6') {
+    props['Can Do Now']         = { rich_text: txt(document.getElementById('t6-cando').value) };
+    props['Downstream Change']  = { rich_text: txt(document.getElementById('t6-downstream').value) };
+    props['Upstream Change']    = { rich_text: txt(document.getElementById('t6-upstream').value) };
+    props['Estimated Value']    = { rich_text: txt(document.getElementById('t6-value').value) };
+    props['Headline Quote']     = { rich_text: txt(document.getElementById('t6-headline').value) };
+    props["What Didn't Change"] = { rich_text: txt(document.getElementById('t6-remaining').value) };
+    props['Coach Notes']        = { rich_text: txt(document.getElementById('t6-notes').value) };
+    if (selectedPermission) props['Case Study Permission'] = { select: { name: selectedPermission } };
+  }
+
+  const body = {
+    parent: { database_id: NOTION_DB_ID },
+    properties: props
+  };
+
+  try {
+    const res = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || 'Submission failed');
+    }
+
+    document.getElementById('confirm-client').textContent   = client;
+    document.getElementById('confirm-calltype').textContent = CALL_TYPE_LABELS[calltype];
+    document.getElementById('submit-confirm').style.display = 'block';
+    document.getElementById('submit-confirm').scrollIntoView({ behavior:'smooth' });
+
+  } catch(e) {
+    console.error(e);
+    document.getElementById('submit-error').style.display = 'block';
+    document.getElementById('submit-error').scrollIntoView({ behavior:'smooth' });
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Submit to Notion →';
+  }
+}
+</script>
+</body>
+</html>
